@@ -1,0 +1,10 @@
+# WorkBuddy 内部文件
+.wbapp_*.genie
+.workbuddy/
+
+# 原始简历文档（不对外发布）
+*.docx
+
+# 系统文件
+.DS_Store
+Thumbs.db

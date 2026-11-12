@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Text2SQL 中文电商评测报告</title>
+<style>
+* { box-sizing:border-box; }
+body { margin:0; background:#F6F7FB; color:#1B2130; line-height:1.7;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+.page { max-width:1000px; margin:0 auto; padding:48px 28px 80px; }
+h1 { font-size:30px; margin:0 0 8px; letter-spacing:-.5px; }
+.sub { color:#6B7280; font-size:14px; margin-bottom:26px; }
+h2 { font-size:20px; margin:44px 0 6px; padding-left:12px; border-left:4px solid #4C6FFF; }
+.desc { color:#6B7280; font-size:13px; margin:0 0 16px; padding-left:16px; }
+.card { background:#fff; border:1px solid #E5E8F0; border-radius:12px; padding:20px 22px; margin-bottom:16px; }
+.kpis { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:8px; }
+.kpi { flex:1; min-width:170px; background:#fff; border:1px solid #E5E8F0; border-radius:12px; padding:16px 18px; }
+.kpi .num { font-size:26px; font-weight:700; color:#4C6FFF; }
+.kpi .lab { font-size:12px; color:#6B7280; margin-top:2px; }
+table { width:100%; border-collapse:collapse; font-size:14px; }
+th,td { padding:10px 8px; text-align:center; border-bottom:1px solid #EEF0F6; }
+th { color:#6B7280; font-weight:600; font-size:12px; }
+td.strong { font-weight:600; text-align:left; }
+td.hl { font-weight:700; color:#4C6FFF; }
+.bar-row { display:flex; align-items:center; gap:10px; margin:7px 0; font-size:13px; }
+.bar-label { width:120px; color:#4B5563; flex:none; }
+.bar-track { flex:1; height:16px; background:#EEF0F6; border-radius:8px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:8px; }
+.bar-value { width:58px; text-align:right; color:#374151; }
+.group-title { font-size:13px; font-weight:600; margin:16px 0 4px; }
+.note { border-left:4px solid #F5A623; background:#FFFBF0; border-radius:8px; padding:14px 18px;
+font-size:13.5px; color:#5A4B2A; margin:16px 0; }
+.note b { color:#8A6A14; }
+.case { background:#fff; border:1px solid #E5E8F0; border-radius:12px; padding:18px 20px; margin-bottom:14px; }
+.case-head { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.badge { font-size:11px; padding:2px 9px; border-radius:999px; font-weight:600; }
+.badge.ok { background:#E6F7EF; color:#007A52; }
+.badge.bad { background:#FDECEC; color:#C0272D; }
+.case-model { font-weight:600; font-size:13px; }
+.case-meta { font-size:12px; color:#9AA4B8; }
+.case-q { font-size:14px; margin-bottom:10px; }
+.sql-label { font-size:11px; color:#9AA4B8; letter-spacing:.5px; margin-top:8px; }
+pre { background:#F4F6FB; border:1px solid #E5E8F0; border-radius:8px; padding:12px 14px;
+font-size:12.5px; overflow-x:auto; white-space:pre-wrap; word-break:break-word; margin:4px 0 0;
+font-family:"SFMono-Regular",Consolas,monospace; }
+.case-tag { font-size:12px; color:#C0272D; margin-top:8px; }
+.case-err { font-size:12px; color:#9A3412; margin-top:4px; }
+.pos { color:#007A52; font-weight:600; } .neg { color:#C0272D; font-weight:600; }
+ul { margin:6px 0 0 20px; padding:0; font-size:14px; } li { margin:6px 0; }
+.foot { margin-top:44px; padding-top:16px; border-top:1px solid #E5E8F0; color:#9AA4B8; font-size:12px; }
+</style></head><body><div class="page">
+<h1>Text2SQL 中文电商评测报告</h1>
+<div class="sub">自建 50 题评测集 · 3 模型横向对比 · 2 档提示词消融 · 27 条失败样本归因</div>
+
+<div class="kpis">
+<div class="kpi"><div class="num">50</div><div class="lab">评测题（15 easy / 20 medium / 15 hard）</div></div>
+<div class="kpi"><div class="num">19</div><div class="lab">复核后修正的 gold_sql 条数</div></div>
+<div class="kpi"><div class="num">27</div><div class="lab">失败样本（三模型合计）</div></div>
+<div class="kpi"><div class="num">56%</div><div class="lab">失败中口径类问题占比</div></div>
+</div>
+
+<h2>一、实验设置与统计口径</h2>
+<p class="desc">先把指标和范围讲清楚，结论才可信。</p>
+<div class="card">
+<ul>
+<li><b>数据与题目</b>：自建中文电商库（8 表、800 订单、2024-06 ~ 2025-08），50 题分 easy / medium / hard，覆盖单表、2 表 JOIN、3 表 JOIN + HAVING + 子查询。</li>
+<li><b>指标</b>：Valid SQL（能否执行）、严格 EX（结果行列完全一致）、<b>答案等价 EX（本报告主指标）</b>。</li>
+<li><b>答案等价 EX 定义</b>：行数一致，且 gold 的每一列都能在模型结果里找到；允许模型多返回辅助列（如顺带带上销量/销售额），允许 ID 与名称等价（1 与「数码电子」视为同一个值），忽略列顺序。</li>
+<li><b>口径复核</b>：逐题对照业务语义，修正了 19 条题目本身的逻辑错误（过滤条件写在 JOIN ON 里失效、ORDER BY 用明细列、缺聚合/GROUP BY、分母口径错、明细重复累加等），明细见 <code>reports/gold_sql_review.xlsx</code>。</li>
+<li><b>缺失处理</b>：接口超时/限流产生的空输出按「缺失」处理，不计入分母（表中「有效题数」已扣除），避免把调用失败算成模型能力问题。</li>
+<li><b>消融实验</b>：<b>仅取 glm-4.5-flash 与 deepseek-flash</b>，各跑「简单提示 / 加强提示」两档，共 4 组 × 50 题；qwen-plus 只参与横向对比。</li>
+</ul>
+<div class="note"><b>为什么消融没有 qwen-plus？</b> 消融需要成对运行（模型 × 2 档提示），加千问意味着多 2 组全量调用；其响应延迟高、成本不合算，且它在横向对比中 hard 题并不占优，不改变「加强提示为负收益」的方向。因此<b>消融结论仅代表 glm 与 deepseek 两个模型，不外推到 qwen-plus</b>。</div>
+</div>
+
+<h2>二、三模型横向对比（加强提示）</h2>
+<p class="desc">严格 EX 与答案等价 EX 并列，用来量化「评测口径」带来的差异。</p>
+<div class="card"><table>
+<tr><th>模型</th><th>有效题数</th><th>Valid SQL</th><th>严格 EX</th><th>答案等价 EX</th><th>easy</th><th>medium</th><th>hard</th></tr>
+<tr><td class='strong'>智谱 glm-4.5-flash</td><td>47</td><td>93.6%</td><td>46.8%</td><td class='hl'>76.6%</td><td>73.3%</td><td>85.0%</td><td>66.7%</td></tr><tr><td class='strong'>DeepSeek flash</td><td>49</td><td>98.0%</td><td>57.1%</td><td class='hl'>87.8%</td><td>93.3%</td><td>90.0%</td><td>78.6%</td></tr><tr><td class='strong'>通义千问 qwen-plus</td><td>50</td><td>100.0%</td><td>76.0%</td><td class='hl'>80.0%</td><td>93.3%</td><td>85.0%</td><td>60.0%</td></tr></table></div>
+<div class="card"><div class='group-title'>智谱 glm-4.5-flash</div><div class="bar-row"><div class="bar-label">Valid SQL</div><div class="bar-track"><div class="bar-fill" style="width:93.6%;background:#9AA4B8"></div></div><div class="bar-value">93.6%</div></div><div class="bar-row"><div class="bar-label">答案等价 EX</div><div class="bar-track"><div class="bar-fill" style="width:76.6%;background:#4C6FFF"></div></div><div class="bar-value">76.6%</div></div><div class='group-title'>DeepSeek flash</div><div class="bar-row"><div class="bar-label">Valid SQL</div><div class="bar-track"><div class="bar-fill" style="width:98.0%;background:#9AA4B8"></div></div><div class="bar-value">98.0%</div></div><div class="bar-row"><div class="bar-label">答案等价 EX</div><div class="bar-track"><div class="bar-fill" style="width:87.8%;background:#00A870"></div></div><div class="bar-value">87.8%</div></div><div class='group-title'>通义千问 qwen-plus</div><div class="bar-row"><div class="bar-label">Valid SQL</div><div class="bar-track"><div class="bar-fill" style="width:100.0%;background:#9AA4B8"></div></div><div class="bar-value">100.0%</div></div><div class="bar-row"><div class="bar-label">答案等价 EX</div><div class="bar-track"><div class="bar-fill" style="width:80.0%;background:#F5A623"></div></div><div class="bar-value">80.0%</div></div></div>
+<div class="note">三个模型 Valid SQL 在 94%~100%，但答案等价 EX 只有 77%~88%：<b>SQL 能跑通不等于答对</b>。严格 EX 与等价 EX 相差 4~31 个百分点，说明原口径把「多返回一列」「按 ID 而非名称分组」这类等价答案误判成错误，修正后才是模型的真实水平。</div>
+
+<h2>三、失败归因分布</h2>
+<p class="desc">共 27 条失败样本；一条样本可能有多个标签，占比之和大于 100%。</p>
+<div class="card"><div class="bar-row"><div class="bar-label">逻辑推断差(同表同字段但值对不上)</div><div class="bar-track"><div class="bar-fill" style="width:100.0%;background:#E5484D"></div></div><div class="bar-value">37.0%</div></div><div class="bar-row"><div class="bar-label">口径: 漏了 DISTINCT</div><div class="bar-track"><div class="bar-fill" style="width:50.0%;background:#E5484D"></div></div><div class="bar-value">18.5%</div></div><div class="bar-row"><div class="bar-label">多列（辅助列 / 口径等价，严格 EX 误判）</div><div class="bar-track"><div class="bar-fill" style="width:40.0%;background:#E5484D"></div></div><div class="bar-value">14.8%</div></div><div class="bar-row"><div class="bar-label">缺列（模型未返回完整答案）</div><div class="bar-track"><div class="bar-fill" style="width:30.0%;background:#E5484D"></div></div><div class="bar-value">11.1%</div></div><div class="bar-row"><div class="bar-label">语法错误: incomplete input</div><div class="bar-track"><div class="bar-fill" style="width:20.0%;background:#E5484D"></div></div><div class="bar-value">7.4%</div></div><div class="bar-row"><div class="bar-label">语法: 表别名歧义</div><div class="bar-track"><div class="bar-fill" style="width:20.0%;background:#E5484D"></div></div><div class="bar-value">7.4%</div></div><div class="bar-row"><div class="bar-label">聚合字段: total_amount→subtotal</div><div class="bar-track"><div class="bar-fill" style="width:10.0%;background:#E5484D"></div></div><div class="bar-value">3.7%</div></div><div class="bar-row"><div class="bar-label">行数不同(3→0)，聚合粒度或过滤条件问题</div><div class="bar-track"><div class="bar-fill" style="width:10.0%;background:#E5484D"></div></div><div class="bar-value">3.7%</div></div></div>
+<div class="note"><b>核心发现：56% 的失败与口径/语义相关，语法错误占比很低。</b> 其中「逻辑推断差(同表同字段但值对不上)」出现 10 次（37%）。这说明改善方向不是换更大的模型，而是把评测题的口径写清楚、并把 SQL 语义对齐纳入评测体系。</div>
+
+<h2>四、典型案例</h2>
+<p class="desc">每个模型各取 1 条正确、1 条失败，对比 gold_sql 与模型生成 SQL。</p>
+
+    <div class="case">
+      <div class="case-head"><span class="badge ok">正确</span>
+        <span class="case-model">智谱 glm-4.5-flash</span>
+        <span class="case-meta">Q36 · hard</span></div>
+      <div class="case-q">各年龄段用户销售额怎么样</div>
+      <div class="sql-label">gold_sql</div><pre>select case
+  when u.age between 18 and 25 then &#x27;18-25岁&#x27;
+  when u.age between 26 and 35 then &#x27;26-35岁&#x27;
+  when u.age between 36 and 45 then &#x27;36-45岁&#x27;
+  when u.age between 46 and 60 then &#x27;46-60岁&#x27;
+  else &#x27;60岁以上&#x27;
+end as age_bucket, sum(o.total_amount) as total_sales
+from orders o left join users u on o.user_id = u.user_id
+where o.status = &#x27;已完成&#x27;
+group by age_bucket
+order by age_bucket</pre>
+      <div class="sql-label">模型生成 SQL</div><pre>SELECT 
+    CASE 
+        WHEN age BETWEEN 18 AND 25 THEN &#x27;18-25岁&#x27;
+        WHEN age BETWEEN 26 AND 35 THEN &#x27;26-35岁&#x27;
+        WHEN age BETWEEN 36 AND 45 THEN &#x27;36-45岁&#x27;
+        WHEN age BETWEEN 46 AND 60 THEN &#x27;46-60岁&#x27;
+        WHEN age &gt;= 61 THEN &#x27;60岁以上&#x27;
+        ELSE &#x27;未知年龄段&#x27;
+    END AS age_group,
+    SUM(orders.total_amount) AS sales_amount
+FROM 
+    users
+JOIN 
+    orders ON users.user_id = orders.user_id
+WHERE 
+    orders.status = &#x27;已完成&#x27;
+GROUP BY 
+    age_group
+ORDER BY 
+    age_group;</pre>
+      
+      
+    </div>
+    <div class="case">
+      <div class="case-head"><span class="badge bad">失败</span>
+        <span class="case-model">智谱 glm-4.5-flash</span>
+        <span class="case-meta">Q1 · easy</span></div>
+      <div class="case-q">30岁以下的女性用户有多少</div>
+      <div class="sql-label">gold_sql</div><pre>SELECT COUNT(distinct user_id) FROM users WHERE age&lt;30 AND gender=&#x27;女&#x27;</pre>
+      <div class="sql-label">模型生成 SQL</div><pre>SELECT COUNT(*) FROM users WHERE gender = &#x27;女&#x27; AND age &lt;= 30</pre>
+      <div class='case-tag'>归因标签：口径: 漏了 DISTINCT</div>
+      
+    </div>
+    <div class="case">
+      <div class="case-head"><span class="badge ok">正确</span>
+        <span class="case-model">DeepSeek flash</span>
+        <span class="case-meta">Q36 · hard</span></div>
+      <div class="case-q">各年龄段用户销售额怎么样</div>
+      <div class="sql-label">gold_sql</div><pre>select case
+  when u.age between 18 and 25 then &#x27;18-25岁&#x27;
+  when u.age between 26 and 35 then &#x27;26-35岁&#x27;
+  when u.age between 36 and 45 then &#x27;36-45岁&#x27;
+  when u.age between 46 and 60 then &#x27;46-60岁&#x27;
+  else &#x27;60岁以上&#x27;
+end as age_bucket, sum(o.total_amount) as total_sales
+from orders o left join users u on o.user_id = u.user_id
+where o.status = &#x27;已完成&#x27;
+group by age_bucket
+order by age_bucket</pre>
+      <div class="sql-label">模型生成 SQL</div><pre>SELECT
+    CASE
+        WHEN u.age BETWEEN 18 AND 25 THEN &#x27;18-25岁&#x27;
+        WHEN u.age BETWEEN 26 AND 35 THEN &#x27;26-35岁&#x27;
+        WHEN u.age BETWEEN 36 AND 45 THEN &#x27;36-45岁&#x27;
+        WHEN u.age BETWEEN 46 AND 60 THEN &#x27;46-60岁&#x27;
+        WHEN u.age &gt;= 61 THEN &#x27;60岁以上&#x27;
+        ELSE &#x27;未知&#x27;
+    END AS age_group,
+    SUM(o.total_amount) AS total_sales
+FROM orders o
+JOIN users u ON o.user_id = u.user_id
+WHERE o.status = &#x27;已完成&#x27;
+GROUP BY age_group
+ORDER BY age_group;</pre>
+      
+      
+    </div>
+    <div class="case">
+      <div class="case-head"><span class="badge bad">失败</span>
+        <span class="case-model">DeepSeek flash</span>
+        <span class="case-meta">Q23 · medium</span></div>
+      <div class="case-q">不同渠道下单用户分布情况</div>
+      <div class="sql-label">gold_sql</div><pre>select c.channel_name, count(distinct o.user_id) from orders o left join channels c on o.channel_id = c.channel_id group by c.channel_name</pre>
+      <div class="sql-label">模型生成 SQL</div><pre>SELECT c.channel_name,
+       COUNT(DISTINCT o.user_id) AS user_count,
+       ROUND(COUNT(DISTINCT o.user_id) * 100.0 /
+             (SELECT COUNT(DISTINCT user_id) FROM orders WHERE status = &#x27;已完成&#x27;), 2) AS user_pct
+FROM orders o
+JOIN channels c ON o.channel_id = c.channel_id
+WHERE o.status = &#x27;已完成&#x27;
+GROUP BY c.channel_id, c.channel_name
+ORDER BY user_count DESC;</pre>
+      <div class='case-tag'>归因标签：多列（辅助列 / 口径等价，严格 EX 误判）</div>
+      
+    </div>
+
+<h2>五、消融实验：简单 vs 加强提示</h2>
+<p class="desc">仅 glm-4.5-flash 与 deepseek-flash；指标为答案等价 EX。</p>
+<div class="card"><table>
+<tr><th>模型</th><th>提示词</th><th>Valid SQL</th><th>EX</th><th>easy</th><th>medium</th><th>hard</th></tr>
+<tr><td class='strong'>智谱 glm-4.5-flash</td><td>简单提示</td><td>95.1%</td><td class='hl'>75.6%</td><td>93.3%</td><td>75.0%</td><td>50.0%</td></tr><tr><td class='strong'>智谱 glm-4.5-flash</td><td>加强提示</td><td>93.6%</td><td class='hl'>76.6%</td><td>73.3%</td><td>85.0%</td><td>66.7%</td></tr><tr><td class='strong'>DeepSeek flash</td><td>简单提示</td><td>100.0%</td><td class='hl'>85.4%</td><td>100.0%</td><td>85.0%</td><td>69.2%</td></tr><tr><td class='strong'>DeepSeek flash</td><td>加强提示</td><td>98.0%</td><td class='hl'>87.8%</td><td>93.3%</td><td>90.0%</td><td>78.6%</td></tr></table></div>
+<div class="card"><table>
+<tr><th>模型</th><th>简单 EX</th><th>加强 EX</th><th>总 EX 变化</th><th>hard 变化</th></tr>
+<tr><td class='strong'>智谱 glm-4.5-flash</td><td>75.6%</td><td>76.6%</td><td class='pos'>+1.0 pt</td><td class='pos'>+16.7 pt</td></tr><tr><td class='strong'>DeepSeek flash</td><td>85.4%</td><td>87.8%</td><td class='pos'>+2.4 pt</td><td class='pos'>+9.4 pt</td></tr></table></div>
+<div class="note"><b>加强提示词整体没有带来正收益。</b> 详细指令增加了 token 干扰，部分约束（如强制 JOIN/GROUP BY 写法）与题目实际口径冲突，反而把模型推向错误方向。提示词的收益应按题型做定向约束，而不是全局堆指令。</div>
+
+<h2>六、结论与局限</h2>
+<div class="card"><ul>
+<li><b>瓶颈在语义口径，不在语法。</b> Valid SQL 在 94%~100%，答案等价 EX 只有 77%~88%，失败集中在返回列数、聚合口径、过滤条件。</li>
+<li><b>评测口径本身是最大的误差源。</b> 严格 EX 会低估模型 31 个百分点；评测集 gold 还有 19 条逻辑错误。做 Text2SQL 评测，先把 gold 和口径打磨干净，比换模型更重要。</li>
+<li><b>提示词不是越长越好。</b> 两模型 × 两档提示的消融显示加强提示无正收益，hard 题尤其明显。</li>
+<li><b>局限</b>：hard 仅 15 题，1 题 = 6.7 pt，波动大；消融只覆盖 2 个模型。<b>glm-4.5-flash 有 9 题因接口超时缺失（其中 hard 题占 7 题）</b>，其总分与分难度只代表已取得的 41 题，横向可比性弱于另两个模型；缺失按缺失处理，不当作模型错误。</li>
+</ul></div>
+
+<div class="foot">数据来源：reports/model_scores.xlsx、error_attrition_final.xlsx、ablation_results.xlsx、gold_sql_review.xlsx。temperature=0，结果可复现。</div>
+</div></body></html>

@@ -124,48 +124,68 @@ section{padding:68px 0;border-top:1px solid var(--border);}
 .stat .lbl{color:var(--text-dim);font-size:14px;margin-top:6px;}
 
 /* 时间线（工作/教育） */
-.timeline{position:relative;padding-left:32px;}
-.timeline::before{
-  content:"";position:absolute;left:8px;top:6px;bottom:6px;
-  width:2px;background:linear-gradient(var(--accent),rgba(37,99,235,0.15));
-}
-.tl-item{position:relative;margin-bottom:40px;}
+.timeline{position:relative;}
+.tl-item{position:relative;margin-bottom:24px;}
 .tl-item:last-child{margin-bottom:0;}
-.tl-item::before{
-  content:"";position:absolute;left:-28px;top:8px;
-  width:12px;height:12px;border-radius:50%;
-  background:var(--bg);border:3px solid var(--accent);
+/* 工作经历条目：卡片式，左侧方形 logo + 右侧内容 */
+.tl-entry{
+  display:flex;align-items:flex-start;gap:22px;
+  padding:24px;border-radius:var(--radius);
+  background:var(--card);border:1px solid var(--border);
+  box-shadow:var(--shadow);transition:transform .25s,border-color .25s,box-shadow .25s;
 }
-/* 工作经历条目：左侧方形 logo + 右侧内容 */
-.tl-entry{display:flex;align-items:flex-start;gap:20px;}
+.tl-entry:hover{transform:translateY(-3px);border-color:var(--border-strong);box-shadow:var(--shadow-hover);}
 .tl-logo{
-  width:56px;height:56px;border-radius:12px;flex-shrink:0;
+  width:64px;height:64px;border-radius:14px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
   background:var(--bg-soft);border:1px solid var(--border);
-  overflow:hidden;
+  overflow:hidden;box-shadow:0 4px 12px rgba(37,99,235,0.08);
 }
-.tl-logo img{width:100%;height:100%;object-fit:contain;padding:6px;}
+.tl-logo img{width:100%;height:100%;object-fit:contain;padding:8px;}
 .tl-logo .logo-text{
   display:flex;align-items:center;justify-content:center;
-  width:100%;height:100%;font-size:20px;font-weight:800;
+  width:100%;height:100%;font-size:22px;font-weight:800;
   color:#1a1a1a;letter-spacing:0;
 }
 .tl-logo.logo-mt{background:#ffc300;}
 .tl-logo.logo-zn{background:#fff;}
-.tl-content{flex:1;}
-.tl-meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:14px;margin-bottom:8px;}
-.tl-time{color:var(--text-faint);font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap;}
-.tl-company{font-size:19px;font-weight:700;color:var(--text);}
-.tl-role{color:var(--accent);font-size:15px;font-weight:600;}
-.tl-body{color:var(--text-dim);font-size:15px;max-width:820px;}
-.tl-body ul{list-style:none;margin-top:8px;}
-.tl-body li{position:relative;padding-left:18px;margin-bottom:7px;}
-.tl-body li::before{
-  content:"";position:absolute;left:2px;top:10px;
-  width:6px;height:6px;border-radius:50%;background:var(--accent);
-  opacity:.7;
+.tl-content{flex:1;min-width:0;}
+.tl-meta{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-bottom:10px;}
+.tl-company{font-size:18px;font-weight:700;color:var(--text);}
+.tl-role{color:var(--accent);font-size:14px;font-weight:600;}
+.tl-time{
+  color:var(--text-faint);font-size:13px;font-variant-numeric:tabular-nums;
+  margin-left:auto;white-space:nowrap;
 }
+.tl-body{color:var(--text-dim);font-size:14px;line-height:1.7;}
+.tl-body ul{list-style:none;margin-top:2px;}
+.tl-body li{position:relative;padding-left:16px;margin-bottom:6px;}
+.tl-body li::before{
+  content:"";position:absolute;left:0;top:9px;
+  width:6px;height:6px;border-radius:50%;background:var(--accent);
+  opacity:.55;
+}
+.tl-body li:last-child{margin-bottom:0;}
 .tl-body b{color:var(--text);font-weight:600;}
+/* 教育背景条目（无 logo，用校徽色块占位） */
+.edu-entry{
+  display:flex;align-items:flex-start;gap:22px;
+  padding:24px;border-radius:var(--radius);
+  background:var(--card);border:1px solid var(--border);
+  box-shadow:var(--shadow);transition:transform .25s,border-color .25s,box-shadow .25s;
+}
+.edu-entry:hover{transform:translateY(-3px);border-color:var(--border-strong);box-shadow:var(--shadow-hover);}
+.edu-badge{
+  width:64px;height:64px;border-radius:14px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;font-weight:800;color:#fff;
+  background:linear-gradient(135deg,#2563eb,#4f8cff);
+  box-shadow:0 4px 12px rgba(37,99,235,0.18);
+}
+.edu-badge.zn{background:linear-gradient(135deg,#1e4fd8,#3b7bff);}
+.edu-badge.cs{background:linear-gradient(135deg,#0ea5e9,#38bdf8);}
+.edu-badge.edu-img{background:#fff;padding:6px;}
+.edu-badge.edu-img img{width:100%;height:100%;object-fit:contain;}
 
 /* 项目卡片 */
 .projects{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;}
@@ -291,6 +311,9 @@ footer{
   .projects,.ai-grid,.contact-cards{grid-template-columns:1fr;}
   .nav-links{display:none;}
   section{padding:52px 0;}
+  .tl-time{margin-left:0;width:100%;}
+  .tl-entry,.edu-entry{padding:18px;gap:16px;}
+  .tl-logo,.edu-badge{width:52px;height:52px;border-radius:12px;}
 }
 </style>
 </head>
@@ -387,25 +410,6 @@ footer{
               <ul>
                 <li>负责用户增长运营 S 级项目，联动业务产运提升会员阵地、全链路的体验与效率</li>
                 <li>重构站内外多端资源位的会员触达体系，深化用户对会员价值的感知</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="tl-item reveal">
-        <div class="tl-entry">
-          <div class="tl-logo logo-mt"><span class="logo-text">美团</span></div>
-          <div class="tl-content">
-            <div class="tl-meta">
-              <span class="tl-company">美团 · 平台（专项）</span>
-              <span class="tl-role">AI 数据治理 · 数据产品经理</span>
-              <span class="tl-time">2025.10 ~ 2025.12</span>
-            </div>
-            <div class="tl-body">
-              <ul>
-                <li>面向 AI 消费场景开展数据治理，联动商分推进商业分析 Agent 落地</li>
-                <li>规范平台核心指标口径，收敛同义不同名，沉淀业务知识库</li>
               </ul>
             </div>
           </div>
@@ -540,23 +544,33 @@ footer{
     </div>
     <div class="timeline">
       <div class="tl-item reveal">
-        <div class="tl-meta">
-          <span class="tl-time">2018.09 ~ 2021.06</span>
-          <span class="tl-company">西安交通大学</span>
-          <span class="tl-role">管理科学与工程 · 硕士（保研）</span>
-        </div>
-        <div class="tl-body">
-          GPA 3.13（Top 25%）｜西安交通大学优秀研究生、一等奖学金（2018–2020）
+        <div class="edu-entry">
+          <div class="edu-badge edu-img"><img src="logos/xjtu_logo_blue.png" alt="西安交通大学校徽"></div>
+          <div class="tl-content">
+            <div class="tl-meta">
+              <span class="tl-company">西安交通大学</span>
+              <span class="tl-role">管理科学与工程 · 硕士（保研）</span>
+              <span class="tl-time">2018.09 ~ 2021.06</span>
+            </div>
+            <div class="tl-body">
+              GPA 3.13（Top 25%）｜西安交通大学优秀研究生、一等奖学金（2018–2020）
+            </div>
+          </div>
         </div>
       </div>
       <div class="tl-item reveal">
-        <div class="tl-meta">
-          <span class="tl-time">2014.09 ~ 2018.06</span>
-          <span class="tl-company">中南大学</span>
-          <span class="tl-role">安全工程 · 本科</span>
-        </div>
-        <div class="tl-body">
-          GPA 3.46（Top 10%）｜中南大学优秀毕业生、国家励志奖学金、一等奖学金（2015–2017）
+        <div class="edu-entry">
+          <div class="edu-badge edu-img"><img src="logos/csu_logo.png" alt="中南大学校徽"></div>
+          <div class="tl-content">
+            <div class="tl-meta">
+              <span class="tl-company">中南大学</span>
+              <span class="tl-role">安全工程 · 本科</span>
+              <span class="tl-time">2014.09 ~ 2018.06</span>
+            </div>
+            <div class="tl-body">
+              GPA 3.46（Top 10%）｜中南大学优秀毕业生、国家励志奖学金、一等奖学金（2015–2017）
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -572,39 +586,35 @@ footer{
     </div>
 
     <div class="skill-group reveal">
-      <h3 class="skill-group-title">数据产品</h3>
+      <h3 class="skill-group-title">产品能力</h3>
       <div class="skills">
-        <span class="skill">产品规划与迭代路线</span>
-        <span class="skill">需求分析与数仓设计</span>
-        <span class="skill">数据指标治理</span>
-        <span class="skill">埋点规范与口径统一</span>
+        <span class="skill">产品规划</span>
+        <span class="skill">数据治理</span>
+        <span class="skill">归因分析</span>
+        <span class="skill">跨部门协同</span>
         <span class="skill">AB 实验分析</span>
-        <span class="skill">归因模型</span>
-        <span class="skill">数据资产盘点</span>
       </div>
     </div>
 
     <div class="skill-group reveal">
-      <h3 class="skill-group-title">数据产品工具</h3>
+      <h3 class="skill-group-title">工具</h3>
       <div class="skills">
         <span class="skill">SQL</span>
-        <span class="skill">Tableau</span>
-        <span class="skill">Power BI</span>
-        <span class="skill">Excel / 数据透视</span>
+        <span class="skill">BI 工具</span>
         <span class="skill">Python 数据分析</span>
-        <span class="skill">数据看板搭建</span>
+        <span class="skill">数据可视化</span>
+        <span class="skill">数据资产盘点</span>
       </div>
     </div>
 
     <div class="skill-group reveal">
       <h3 class="skill-group-title">AI 能力</h3>
       <div class="skills">
+        <span class="skill">Agent 工作流</span>
+        <span class="skill">RAG</span>
         <span class="skill">AI 模型评测</span>
-        <span class="skill">评测集构建</span>
-        <span class="skill">Text2SQL / NL2SQL</span>
-        <span class="skill">商业分析 Agent</span>
         <span class="skill">Prompt 工程</span>
-        <span class="skill">知识库建设</span>
+        <span class="skill">Text2SQL</span>
       </div>
     </div>
   </div>
